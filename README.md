@@ -50,21 +50,38 @@ docker run -p 9000:9000 -p 9001:9001 \
   server /data --console-address ":9001"
 ```
 
-### Docker Compose
+### Docker Compose (1-click deployment)
+
+A ready-to-use `docker-compose.yml` is included in this repository.
+
+```bash
+# 1. Copy the example environment file and edit credentials
+cp .env.example .env
+
+# 2. Start MinIO
+docker compose up -d
+```
+
+- **S3 API**: http://localhost:9000
+- **Web Console**: http://localhost:9001
+
+All settings (credentials, ports) are configured via the `.env` file. See `.env.example` for available options.
+
+<details>
+<summary>Compose file contents</summary>
 
 ```yaml
-version: '3.8'
-
 services:
   minio:
     image: coollabsio/minio:latest
     container_name: minio
+    restart: unless-stopped
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
@@ -73,10 +90,13 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+      start_period: 10s
 
 volumes:
   minio-data:
 ```
+
+</details>
 
 ## Building Locally
 
